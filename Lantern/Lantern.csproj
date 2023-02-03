@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Lantern</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="NUnit" />
+    <None Remove="NUnit3TestAdapter" />
+    <None Remove="Config\" />
+    <None Remove="Core\" />
+    <None Remove="SSZ\" />
+    <None Remove="System.Security.Cryptography.Algorithms" />
+    <None Remove="Nethermind.Numerics.Dirichlet" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Core\" />
+    <Folder Include="SSZ\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+    <PackageReference Include="Nethermind.Numerics.Dirichlet" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lib\libbls384_256.dylib" Link="libbls384_256.dylib" Pack="true" PackagePath="runtimes">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\bls384_256.dll" Link="bls384_256.dll" Pack="true" PackagePath="runtimes">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libmcl.1.dylib" Link="libmcl.1.dylib" Pack="true" PackagePath="runtimes">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libmclbn384_256.1.dylib" Link="libmclbn384_256.1.dylib" Pack="true" PackagePath="runtimes">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

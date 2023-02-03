@@ -1,0 +1,12 @@
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/bin/Debug/net7.0/Lantern.Types.deps.json
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/bin/Debug/net7.0/Lantern.Types.dll
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/bin/Debug/net7.0/Lantern.Types.pdb
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.csproj.AssemblyReference.cache
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.GeneratedMSBuildEditorConfig.editorconfig
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.AssemblyInfoInputs.cache
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.AssemblyInfo.cs
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.csproj.CoreCompileInputs.cache
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.dll
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/refint/Lantern.Types.dll
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/Lantern.Types.pdb
+/Users/multi/Documents/Projects/Light_Client/Lantern/Lantern.Types/obj/Debug/net7.0/ref/Lantern.Types.dll
