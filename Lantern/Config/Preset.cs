@@ -51,7 +51,8 @@ namespace Lantern.Config
             BELLATRIX_FORK_EPOCH = preset.BELLATRIX_FORK_EPOCH;
             CAPELLA_FORK_EPOCH = preset.CAPELLA_FORK_EPOCH;
             EIP4844_FORK_EPOCH = preset.EIP4844_FORK_EPOCH;         
-        }        
+        }
+        
     }
 }
 

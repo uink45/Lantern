@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using Lantern.Types.Containers;
 using Lantern.Types.Basic;
 using Lantern.Types.Crypto;
@@ -7,7 +8,7 @@ using Lantern.Types.Crypto.BLS;
 using Lantern.Config;
 using System.Diagnostics;
 using Lantern.SSZ;
-using Lantern.SSZ.Consensus;
+using Lantern.SSZ.Types;
 using System.Collections;
 
 namespace Lantern.Core
@@ -20,11 +21,11 @@ namespace Lantern.Core
             Debug.Assert(Helpers.Sum(syncAggregate.SyncCommitteeBits) >= Constants.MIN_SYNC_COMMITTEE_PARTICIPANTS);
 
             bool result = Helpers.IsValidLightClientHeader(update.AttestedHeader);
-            Debug.Assert(result == true);
+            Debug.Assert(result);
 
-            Slot updateAttesedSlot = update.AttestedHeader.Beacon.Slot;
+            Slot updateAttestedSlot = update.AttestedHeader.Beacon.Slot;
             Slot updateFinalizedSlot = update.FinalizedHeader.Beacon.Slot;
-            Debug.Assert(currentSlot >= update.SignatureSlot && update.SignatureSlot > updateAttesedSlot && updateAttesedSlot >= updateFinalizedSlot);
+            Debug.Assert(currentSlot >= update.SignatureSlot && update.SignatureSlot > updateAttestedSlot && updateAttestedSlot >= updateFinalizedSlot);
 
             ulong storePeriod = Helpers.ComputeSyncCommitteePeriodAtSlot(store.FinalizedHeader.Beacon.Slot);
             ulong updateSignaturePeriod = Helpers.ComputeSyncCommitteePeriodAtSlot(update.SignatureSlot);
@@ -38,9 +39,9 @@ namespace Lantern.Core
                 Debug.Assert(updateSignaturePeriod == storePeriod);
             }
 
-            ulong updateAttestedPeriod = Helpers.ComputeSyncCommitteePeriodAtSlot(updateAttesedSlot);
+            ulong updateAttestedPeriod = Helpers.ComputeSyncCommitteePeriodAtSlot(updateAttestedSlot);
             bool updateHasNextSyncCommittee = !Helpers.IsNextSyncCommitteeKnown(store) && (Helpers.IsSyncCommitteeUpdate(update) && updateAttestedPeriod == storePeriod);
-            Debug.Assert(updateAttesedSlot > store.FinalizedHeader.Beacon.Slot || updateHasNextSyncCommittee);
+            Debug.Assert(updateAttestedSlot > store.FinalizedHeader.Beacon.Slot || updateHasNextSyncCommittee);
 
             if (!Helpers.IsFinalityUpdate(update))
             {
@@ -52,7 +53,7 @@ namespace Lantern.Core
 
                 if(updateFinalizedSlot == Constants.GENESIS_SlOT)
                 {
-                    Debug.Assert(update.NextSyncCommittee.Equals(store.NextSyncCommittee));
+                    Debug.Assert(update.FinalizedHeader.Equals(LightClientHeader.Zero));
                     finalizedRoot = Root.Zero;
                 }
                 else
@@ -112,7 +113,7 @@ namespace Lantern.Core
                     count++;
                 }
             }
-
+            
             ForkVersion forkVersion = Helpers.ComputeForkVersion(Helpers.ComputeEpochAtSlot(update.SignatureSlot));
             Domain domain = Helpers.ComputeDomain(Constants.DOMAIN_SYNC_COMMITTEE, forkVersion, genesisValidatorsRoot);
             Root signingRoot = Helpers.ComputeSigningRoot<BeaconBlockHeaderSSZ>(BeaconBlockHeaderSSZ.Serialize(update.AttestedHeader.Beacon), domain, sszPreset);

@@ -51,6 +51,9 @@ public class SizePreset
         {"MAX_ATTESTATIONS", 128},
         {"MAX_DEPOSITS", 16},
         {"MAX_VOLUNTARY_EXITS", 16},
+        {"MAX_BLS_TO_EXECUTION_CHANGES", 16},
+        {"MAX_WITHDRAWALS_PER_PAYLOAD", 16},
+        {"MAX_BLOBS_PER_BLOCK", 4},
         {"MAX_VALIDATORS_PER_COMMITTEE", 2048},
         {"DEPOSIT_PROOF_LENGTH", 33},
     });
@@ -79,6 +82,9 @@ public class SizePreset
         {"MAX_ATTESTATIONS", 128},
         {"MAX_DEPOSITS", 16},
         {"MAX_VOLUNTARY_EXITS", 16},
+        {"MAX_BLS_TO_EXECUTION_CHANGES", 16},
+        {"MAX_WITHDRAWALS_PER_PAYLOAD", 4},
+        {"MAX_BLOBS_PER_BLOCK", 4},
         {"MAX_VALIDATORS_PER_COMMITTEE", 2048},
         {"DEPOSIT_PROOF_LENGTH", 33},
     });

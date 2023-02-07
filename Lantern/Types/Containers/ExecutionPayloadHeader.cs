@@ -19,6 +19,7 @@ namespace Lantern.Types.Containers
         public readonly ulong Timestamp;
         public readonly List<byte> ExtraData;
         public readonly UInt256 BaseFeePerGas;
+        public readonly UInt256 ExcessDataGas;
         public readonly Bytes32 BlockHash;
         public readonly Root TransactionsRoot;
         public readonly Root WithdrawalsRoot;
@@ -35,7 +36,9 @@ namespace Lantern.Types.Containers
                 0,
                 0,
                 new List<byte>(Constants.MAX_EXTRA_DATA_BYTES),
-                0, Bytes32.Zero,
+                0, 
+                0,
+                Bytes32.Zero,
                 Root.Zero,
                 Root.Zero);
 
@@ -51,6 +54,7 @@ namespace Lantern.Types.Containers
             ulong timestamp,
             List<byte> extraData,
             UInt256 baseFeePerGas,
+            UInt256 excessDataGas,
             Bytes32 blockHash,
             Root transactionsRoot,
             Root withdrawalsRoot)
@@ -67,6 +71,7 @@ namespace Lantern.Types.Containers
             Timestamp = timestamp;
             ExtraData = extraData;
             BaseFeePerGas = baseFeePerGas;
+            ExcessDataGas = excessDataGas;
             BlockHash = blockHash;
             TransactionsRoot = transactionsRoot;
             WithdrawalsRoot = withdrawalsRoot;
@@ -96,6 +101,7 @@ namespace Lantern.Types.Containers
                 && Timestamp == other.Timestamp
                 && ExtraData.SequenceEqual(other.ExtraData)
                 && BaseFeePerGas.Equals(other.BaseFeePerGas)
+                && ExcessDataGas.Equals(other.ExcessDataGas)
                 && BlockHash.Equals(other.BlockHash)
                 && TransactionsRoot.Equals(other.TransactionsRoot)
                 && WithdrawalsRoot.Equals(other.WithdrawalsRoot);
@@ -115,6 +121,7 @@ namespace Lantern.Types.Containers
                 Timestamp,
                 ExtraData,
                 BaseFeePerGas,
+                ExcessDataGas,
                 BlockHash,
                 TransactionsRoot,
                 WithdrawalsRoot));

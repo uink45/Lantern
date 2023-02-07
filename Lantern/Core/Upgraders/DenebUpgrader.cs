@@ -18,6 +18,7 @@ public class DenebUpgrader
                 pre.Execution.Timestamp,
                 pre.Execution.ExtraData,
                 pre.Execution.BaseFeePerGas,
+                pre.Execution.ExcessDataGas,
                 pre.Execution.BlockHash,
                 pre.Execution.TransactionsRoot,
                 pre.Execution.WithdrawalsRoot), pre.ExecutionBranch);

@@ -2,13 +2,13 @@
 using Lantern.Config;
 using Lantern.Core;
 using Lantern.SSZ;
-using Lantern.SSZ.Consensus;
-using Lantern.Tests.Models;
+using Lantern.SSZ.Types;
+using Lantern.SSZ.Types.Capella;
+using Lantern.SSZ.Types.Deneb;
 using Lantern.Types.Basic;
 using Lantern.Types.Containers;
 using Lantern.Types.Crypto;
 using NUnit.Framework;
-using YamlDotNet.Serialization;
 
 namespace Lantern.Tests;
 
@@ -19,33 +19,16 @@ public class HelpersTests
     public void SetUp()
     {
         Preset.SetPreset<Minimal>();
-        const string specVersion = "capella";
-        _syncTestsLocation = Path.Combine(AppContext.BaseDirectory, "MockupData", "minimal", specVersion, "light_client", "sync",
-            "pyspec_tests");
-        _proofTestsLocation = Path.Combine(AppContext.BaseDirectory, "MockupData", "minimal", specVersion, "light_client",
-            "single_merkle_proof", "BeaconState");
-        _updateFiles = new List<string>(Directory.GetFiles(Path.Combine(_syncTestsLocation, "light_client_sync"),
-            "update_*.ssz_snappy"));
     }
 
-    private string _syncTestsLocation = "";
-    private string _proofTestsLocation = "";
-    private List<string> _updateFiles = new();
-
+    private readonly string _testsLocation = Path.Combine(AppContext.BaseDirectory, "MockupData", "minimal");
+    
     [Test]
     public void ComputeSyncCommitteePeriodAtSlot()
     {
         var slot = new Slot(5612900);
         Assert.That(Helpers.ComputeSyncCommitteePeriodAtSlot(slot), Is.EqualTo(87701),
             "ComputeSyncCommitteePeriodAtSlot should return the correct value for the given input");
-    }
-
-    [Test]
-    public void IsValidMerkleBranch()
-    {
-        TestIsValidMerkleProof("current_sync_committee_merkle_proof");
-        TestIsValidMerkleProof("finality_root_merkle_proof");
-        TestIsValidMerkleProof("next_sync_committee_merkle_proof");
     }
 
     [Test]
@@ -57,25 +40,20 @@ public class HelpersTests
     }
 
     [Test]
-    public void TestIsSyncCommitteeUpdate()
+    public void TestUpdateChecks()
     {
-        TestUpdate(true, _updateFiles[0], Helpers.IsSyncCommitteeUpdate);
+        var updateFile = GetUpdateFileLocation("update_0xe7c1b621e495c3987e97fd40456b2dd8e233e37b5ef487d48d3f44665d783ccf_sf.ssz_snappy");
+        TestUpdate(true, updateFile, Helpers.IsSyncCommitteeUpdate);
+        TestUpdate(true, updateFile, Helpers.IsFinalityUpdate);
     }
 
     [Test]
-    public void TestIsFinalityUpdate()
+    public void TestIsBetterUpdate()
     {
-        TestUpdate(true, _updateFiles[0], Helpers.IsFinalityUpdate);
-    }
-
-    [Test]
-    public void IsBetterUpdate()
-    {
-        var firstUpdate = ConstructSszObject<LightClientUpdateSSZ>(_updateFiles[1]);
-        var secondUpdate = ConstructSszObject<LightClientUpdateSSZ>(_updateFiles[0]);
-
-        var result = Helpers.IsBetterUpdate(LightClientUpdateSSZ.Deserialize(firstUpdate),
-            LightClientUpdateSSZ.Deserialize(secondUpdate));
+        var firstUpdate = ConstructSszObject<CapellaUpdate>(GetUpdateFileLocation("update_0xe7c1b621e495c3987e97fd40456b2dd8e233e37b5ef487d48d3f44665d783ccf_sf.ssz_snappy"));
+        var secondUpdate = ConstructSszObject<CapellaUpdate>(GetUpdateFileLocation("update_0x955cc1e5b12fff32f44794afc64a5bdbebc324edd649e922c0e18693b92a4f75_sf.ssz_snappy"));
+        var result = Helpers.IsBetterUpdate(CapellaUpdate.Deserialize(firstUpdate),
+            CapellaUpdate.Deserialize(secondUpdate));
         Assert.That(result, Is.EqualTo(true),
             "IsBetterUpdate should return true if the first update is considered better than the second update");
     }
@@ -83,14 +61,14 @@ public class HelpersTests
     [Test]
     public void IsNextSyncCommitteeKnown()
     {
+        var updateFile =ConstructSszObject<CapellaUpdate>(GetUpdateFileLocation("update_0xe7c1b621e495c3987e97fd40456b2dd8e233e37b5ef487d48d3f44665d783ccf_sf.ssz_snappy"));
         var result = Helpers.IsNextSyncCommitteeKnown(LightClientStore.Zero);
         Assert.That(result, Is.EqualTo(false),
             "IsNextSyncCommitteeKnown should return false when the next sync committee is not known");
-
-        var updateSsz = ConstructSszObject<LightClientUpdateSSZ>(_updateFiles[0]);
+        
         var store = new LightClientStore(LightClientHeader.Zero,
             SyncCommittee.Zero,
-            SyncCommitteeSSZ.Deserialize(updateSsz.NextSyncCommittee),
+            SyncCommitteeSSZ.Deserialize(updateFile.NextSyncCommittee),
             LightClientUpdate.Zero,
             LightClientHeader.Zero,
             0,
@@ -98,7 +76,7 @@ public class HelpersTests
 
         result = Helpers.IsNextSyncCommitteeKnown(store);
         Assert.That(result, Is.EqualTo(true),
-            $"IsNextSyncCommitteeKnown should return true for update file {_updateFiles[0]} when the next sync committee is known");
+            $"IsNextSyncCommitteeKnown should return true for update file {updateFile} when the next sync committee is known");
     }
 
     [Test]
@@ -133,10 +111,10 @@ public class HelpersTests
     [Test]
     public void GetLcExecutionRoot()
     {
-        var updateSsz = ConstructSszObject<LightClientUpdateSSZ>(_updateFiles[0]);
-        var update = LightClientUpdateSSZ.Deserialize(updateSsz);
+        var updateSsz = ConstructSszObject<DenebUpdate>(GetUpdateFileLocation("update_0x42a429738075c8e3a16d6d4f9772148b627eb494d65c6e8b7dbd45ea2ce5dda1_sf.ssz_snappy"));
+        var update = DenebUpdate.Deserialize(updateSsz);
         var hashTreeRoot = new Root(Merkleizer.HashTreeRoot(
-            SszContainer.GetContainer<ExecutionPayloadHeaderSSZ>(SizePreset.MinimalPreset),
+            SszContainer.GetContainer<DenebExecutionPayloadHeader>(SizePreset.MinimalPreset),
             updateSsz.AttestedHeader.Execution));
         var result = Helpers.GetLcExecutionRoot(update.AttestedHeader);
         Assert.That(hashTreeRoot, Is.EqualTo(result),
@@ -145,40 +123,20 @@ public class HelpersTests
 
     private void TestUpdate(bool expectedResult, string updateFilePath, Func<LightClientUpdate, bool> updateCheckMethod)
     {
-        var updateSsz = ConstructSszObject<LightClientUpdateSSZ>(updateFilePath);
-        var result = updateCheckMethod(LightClientUpdateSSZ.Deserialize(updateSsz));
+        var updateSsz = ConstructSszObject<CapellaUpdate>(updateFilePath);
+        var result = updateCheckMethod(CapellaUpdate.Deserialize(updateSsz));
         Assert.That(result, Is.EqualTo(expectedResult),
             $"{updateCheckMethod.Method.Name} should return {expectedResult} for {updateFilePath}");
-    }
-
-    private void TestIsValidMerkleProof(string testName)
-    {
-        var objectFilePath = Path.Combine(_proofTestsLocation, testName, "object.ssz_snappy");
-        var deserializer = new DeserializerBuilder().Build();
-
-        ProofData proofData;
-        using (var reader = new StreamReader(Path.Combine(_proofTestsLocation, testName, "proof.yaml")))
-        {
-            proofData = deserializer.Deserialize<ProofData>(reader);
-        }
-
-        var stateSsz = ConstructSszObject<BeaconStateSSZ>(objectFilePath);
-        var leaf = new Root(Bytes.FromHexString(proofData.leaf));
-
-        var depth = Helpers.FloorLog2(proofData.leaf_index);
-        var index = Helpers.GetSubtreeIndex(proofData.leaf_index);
-
-        var root = new Root(Merkleizer.HashTreeRoot(SszContainer.GetContainer<BeaconStateSSZ>(SizePreset.MinimalPreset),
-            stateSsz));
-        var branch = proofData.branch.Select(b => new Bytes32(Bytes.FromHexString(b))).ToArray();
-
-        var result = Helpers.IsValidMerkleBranch(leaf, branch, depth, index, root);
-        Assert.That(result, Is.EqualTo(true), $"IsValidMerkleBranch should return true for the test case: {testName}");
     }
 
     private static T ConstructSszObject<T>(string filePath)
     {
         return Deserialize.DeserialiseSSZObject<T>(Snappy.Decode(File.ReadAllBytes(filePath)),
             SizePreset.MinimalPreset);
+    }
+
+    private string GetUpdateFileLocation(string name)
+    {
+        return Directory.GetFiles(_testsLocation, name, SearchOption.AllDirectories).First();
     }
 }

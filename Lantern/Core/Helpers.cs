@@ -5,8 +5,9 @@ using Lantern.Types.Containers;
 using Lantern.Types.Basic;
 using Lantern.Types.Crypto;
 using Lantern.SSZ;
-using Lantern.SSZ.Consensus;
-
+using Lantern.SSZ.Types;
+using Lantern.SSZ.Types.Capella;
+using Lantern.SSZ.Types.Deneb;
 namespace Lantern.Core;
 
 public static class Helpers
@@ -43,9 +44,19 @@ public static class Helpers
 
         return new Root(Merkleizer.HashTreeRoot(SszContainer.GetContainer<ForkDataSSZ>(SizePreset.Empty), forkDataSSZ));
     }
+    
+    public static ForkDigest ComputeForkDigest(ForkVersion currentVersion, Root genesisValidatorsRoot)
+    {
+        return new ForkDigest(ComputeForkDataRoot(currentVersion, genesisValidatorsRoot).Bytes[..4]);
+    }
 
     public static ForkVersion ComputeForkVersion(Epoch epoch)
     {
+        if (epoch >= Preset.EIP4844_FORK_EPOCH)
+        {
+            return Preset.EIP4844_FORK_VERSION;
+        }
+        
         if (epoch >= Preset.CAPELLA_FORK_EPOCH)
         {
             return Preset.CAPELLA_FORK_VERSION;
@@ -103,12 +114,19 @@ public static class Helpers
     {
         Epoch epoch = ComputeEpochAtSlot(header.Beacon.Slot);
 
+        if (epoch < Preset.EIP4844_FORK_EPOCH)
+        {
+            if(header.Execution.ExcessDataGas != 0)
+            {
+                return false;
+            }
+        }
         if (epoch < Preset.CAPELLA_FORK_EPOCH)
         {
             return (header.Execution.Equals(ExecutionPayloadHeader.Zero)
-                && header.ExecutionBranch.SequenceEqual(Enumerable.Range(0, FloorLog2(Constants.EXECUTION_PAYLOAD_INDEX)).Select(i => new Bytes32()).ToArray()));
+                    && header.ExecutionBranch.SequenceEqual(Enumerable.Range(0, FloorLog2(Constants.EXECUTION_PAYLOAD_INDEX)).Select(i => new Bytes32()).ToArray()));
         }
-
+        
         return IsValidMerkleBranch(GetLcExecutionRoot(header),
             header.ExecutionBranch,
             FloorLog2(Constants.EXECUTION_PAYLOAD_INDEX),
@@ -211,9 +229,33 @@ public static class Helpers
     {
         Epoch epoch = ComputeEpochAtSlot(header.Beacon.Slot);
 
+        if (epoch >= Preset.EIP4844_FORK_EPOCH)
+        {
+            return new Root(Merkleizer.HashTreeRoot(SszContainer.GetContainer<DenebExecutionPayloadHeader>(SizePreset.MinimalPreset), DenebExecutionPayloadHeader.Serialize(header.Execution)));
+        }
+        
         if (epoch >= Preset.CAPELLA_FORK_EPOCH)
         {
-            return new Root(Merkleizer.HashTreeRoot(SszContainer.GetContainer<ExecutionPayloadHeaderSSZ>(SizePreset.MinimalPreset), ExecutionPayloadHeaderSSZ.Serialize(header.Execution)));
+            var executionHeader = new CapellaExecutionPayloadHeader
+            {
+                ParentHash = header.Execution.ParentHash.Bytes,
+                FeeRecipient = header.Execution.FeeRecipient.AsSpan().ToArray(),
+                StateRoot = header.Execution.StateRoot.AsSpan().ToArray(),
+                ReceiptsRoot = header.Execution.ReceiptsRoot.AsSpan().ToArray(),
+                LogsBloom = header.Execution.LogsBloom.AsSpan().ToArray(),
+                PrevRandao = header.Execution.PrevRandao.AsSpan().ToArray(),
+                BlockNumber = header.Execution.BlockNumber,
+                GasLimit = header.Execution.GasLimit,
+                GasUsed = header.Execution.GasUsed,
+                Timestamp = header.Execution.Timestamp,
+                ExtraData = header.Execution.ExtraData.ToArray(),
+                BaseFeePerGas = header.Execution.BaseFeePerGas,
+                BlockHash = header.Execution.BlockHash.AsSpan().ToArray(),
+                TransactionsRoot = header.Execution.TransactionsRoot.AsSpan().ToArray(),
+                WithdrawalsRoot = header.Execution.WithdrawalsRoot.AsSpan().ToArray()
+            };
+
+            return new Root(Merkleizer.HashTreeRoot(SszContainer.GetContainer<CapellaExecutionPayloadHeader>(SizePreset.MinimalPreset), CapellaExecutionPayloadHeader.Serialize(header.Execution)));
         }
 
         return Root.Zero;

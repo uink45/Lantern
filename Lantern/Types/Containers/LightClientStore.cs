@@ -6,7 +6,7 @@ using Lantern.Types.Containers;
 using Lantern.Types.Basic;
 using Lantern.Types.Crypto;
 using Lantern.SSZ;
-using Lantern.SSZ.Consensus;
+using Lantern.SSZ.Types;
 
 namespace Lantern.Types.Containers
 {
